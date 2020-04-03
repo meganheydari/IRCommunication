@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<title>Team8!</title>
+
+<!-- <script type="text/javascript" src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
+ --><script
+  src="https://code.jquery.com/jquery-3.3.1.min.js"
+  integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+  crossorigin="anonymous"></script>
+<style>
+body {
+	margin: 0;
+  padding: 0;
+}
+
+.background {
+  position: absolute;
+  display: block;
+  top: 0;
+  left: 0;
+  z-index: -1;
+}
+
+.button {
+  background-color: #4CAF50; /* Green */
+  border: none;
+  color: white;
+  padding: 16px 32px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  margin: 10% 10%;
+  -webkit-transition-duration: 0.4s; /* Safari */
+  transition-duration: 0.4s;
+  cursor: pointer;
+}
+
+.button5 {
+  background-color: white;
+  color: black;
+  border: 2px solid #555555;
+}
+
+.button5:hover {
+  background-color: #555555;
+  color: white;
+}
+.button5:focus {outline:0;}
+
+table {
+  border-collapse: collapse;
+  background-color: white;
+}
+
+table, th, td {
+  border: 1px solid black;
+  width: 300px;
+}
+</style>
+<script type="text/javascript">
+  function dbget(json, rowID) {
+    $.get({
+      url: "/data?dbcall="+ json,
+      success: function(response) {
+          var string = "";
+
+          for (var key in response) {
+            var item = response[key];
+            for (var key2 in item) {
+              if (key2 == "date") {
+                string = "on " + item[key2] + ", <br>" + string
+              }
+              else if (key2 == "time") {
+                string = "@ " + item[key2] + " " + string
+              }
+              else if (key2 == "location") {
+                string = "</br>" + item[key2] + " " + string
+              }
+            }
+          }
+          console.log(response);
+          $("#" + rowID).children()[2].children[0].innerHTML = string
+          $("#" + rowID).children()[1].children[0].innerHTML = "logout " + rowID
+      }
+    });
+  }
+
+  
+  function LogoutUser(user) {
+
+    $("#table").remove();
+    
+    $.get({
+      url: "/logout?user=" + user,
+      success: function(response) {
+          console.log(response)
+          $('.queryResponse').html("query: " + response);
+      }
+    });
+  }
+
+
+  function poll() {
+      getLogged();
+      setTimeout(poll, 1000);
+  }
+
+  window.onload = function() {
+      Particles.init({
+        selector: '.background'
+      });
+    getLogged();
+    setTimeout(poll, 1000);
+  };
+
+var loggedInUsers = []
+
+var btn = document.createElement('input');
+var x = document.createElement("div");
+var numberUsers = 0;
+
+function getLogged() {
+   $.get({
+    url: "/loggedin",
+    success: function(response) {
+        var table = $("#table");
+        loggedInUsers = response;
+        //$("#table").remove();
+
+        for(var i = 1; i < loggedInUsers.length + 1; i++)
+        {
+          // if($("#table tr").length < loggedInUsers.length  +  1){
+          if ($("#"+ loggedInUsers[i-1]).length){
+            dbget("{ \"person\":\"" + loggedInUsers[i-1] + "\"}", loggedInUsers[i-1])
+            $("#" + loggedInUsers[i-1]).children()[1].children[0].onClick='javascript:LogoutUser('+loggedInUsers[i-1]+')';
+            $("#" + loggedInUsers[i-1]).children()[0].children[0].innerHTML = loggedInUsers[i-1]
+            $("#"+ loggedInUsers[i-1]).children()[0].innerHTML = loggedInUsers[i-1]
+          }
+          else { 
+            $("#" + loggedInUsers[i-1]).remove();
+            $("#table").css("border: 1px solid black")
+            $("#table").append(["<tr id="+ loggedInUsers[i-1] +"><td style=\"text-align: center\">",loggedInUsers[i-1]," </td>","<td>","<button class=\"button button5\" onclick='javascript:LogoutUser(loggedInUsers[  " ,(i - 1)," ])'>logout</button></td><td> <div style=\"height:100px; width: 300px; overflow:scroll; background-color: white; text-align: center; margin: 0\"></div></td></tr>"].join(""));
+              dbget("{ \"person\":\"" + loggedInUsers[i-1] + "\"}", loggedInUsers[i-1])
+            }  
+          
+        }
+        numberUsers = loggedInUsers.length;
+    }
+  });
+}
+  
+
+</script>
+</head>
+<body>
+    <canvas class="background"></canvas>
+  <script src="./particles.min.js"></script>
+<br/>	
+<h1 style="text-align: center; font-family: Impact Header; color: hsla(127, 63%, 15%, 1.0);">Team8 Dashboard</h1>
+<br/>	
+<br/>	
+
+<h1>Logged In Users:</h1>
+<table id="table" style="width: 100%">
+  <tr >
+    <td>name</td><td>log out</td><td>history</td>
+  </tr>
+
+</table>
+</body>
+</html>
